@@ -1,0 +1,28 @@
+FROM quay.io/fedora/httpd-24
+
+# Add application sources to a directory where the assemble script expects them
+# and set permissions so that the container runs without the root access
+# make fixdepswas not able to compile and install the following Perl modules
+# - DBD-mysql
+# - Starlet
+# - GnuPG-Interface
+USER 0
+RUN dnf install -y mariadb links mod_fcgid expat-devel gcc gd gd-devel graphviz perl-CPAN perl-DBD-mysql perl-Starlet perl-GnuPG-Interface msmtp && \
+  mkdir /rt && \
+  cd /rt && \
+  curl -o rt-5.0.8.tar.gz  https://download.bestpractical.com/pub/rt/release/rt-5.0.8.tar.gz && \
+  tar -zxf rt-5.0.8.tar.gz && \
+  cd rt-5.0.8 && \
+  ./configure --enable-externalauth --with-attachment-store=disk --with-web-user=default --with-web-group=root && \
+  yes | cpan -i CPAN && \
+  yes | make fixdeps && \
+  make install && \
+  mv /opt/rt5/etc/RT_SiteConfig.pm /opt/rt5/etc/RT_SiteConfig.pm.ORIG && \
+  chown -R default:root /run/mod_fcgid && \
+  chown -R default:root /attachments && \
+  rm -rf /root/.cpan && \
+  dnf clean all && \
+  rm /rt/rt-5.0.8.tar.gz
+
+#UID for the default user
+USER 1001

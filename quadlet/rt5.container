@@ -1,0 +1,26 @@
+[Container]
+# The image to run, using a fully qualified name
+Image=docker.io/colonwq/rt-508:1.4
+# Name for the container instance
+ContainerName=rt5
+# Connect the container to the 'podman' network
+Network=podman 
+# Run the container in detached mode and remove it when it stops
+AutoUpdate=registry
+# Add --rm functionality by setting the container to be removed on exit
+PodmanArgs=--rm
+
+# Volume mounts from host paths to container paths
+# main.cf  msmtprc  msmtp_wrapper.sh  rt5.conf  RT_Config.pm  RT_SiteConfig.pm
+Volume=/store/config/msmtprc:/etc/msmtprc:Z
+Volume=/store/config/rt5.conf:/etc/httpd/conf.d/rt5.conf:Z
+Volume=/store/config/RT_SiteConfig.pm:/opt/rt5/etc/RT_SiteConfig.pm:Z
+Volume=/store/attachments/:/attachments:Z
+
+# Port mapping from host port 8080 to container port 8080
+PublishPort=8080:8080
+
+[Install]
+# This service will start when the user session is active
+WantedBy=default.target
+

@@ -1,0 +1,164 @@
+# I passed the total.te file through the Gemini Filter to create a single te file and to remove duplicate rules.
+module my-container-pipe 1.0;
+
+# Consolidated Required Types and Classes from all original modules
+require {
+	type container_runtime_exec_t;
+	type postfix_pipe_t;
+	type config_home_t;
+	type data_home_t;
+	type container_runtime_tmpfs_t;
+	type gconf_home_t;
+	type syslogd_var_run_t;
+	type init_t;
+	type container_runtime_t;
+	type session_dbusd_tmp_t;
+	type systemd_unit_file_t;
+	type container_var_run_t;
+	type nsfs_t;
+	type container_ro_file_t;
+	type container_file_t;
+	type cgroup_t;
+	type unconfined_dbusd_t;
+	type conmon_exec_t;
+	type container_t;
+	type unconfined_t;
+	class file {
+		append create execute execute_no_trans getattr ioctl lock map open read rename setattr unlink watch write
+	};
+	class sock_file { create getattr setattr unlink write };
+	class dir {
+		add_name create getattr ioctl mounton open read remove_name rmdir search setattr watch write
+	};
+	class fifo_file { create getattr ioctl open read unlink write };
+	class process { setcap setexec signull transition };
+	class lnk_file read;
+	class cap_userns { chown dac_override dac_read_search kill setgid setpcap setuid sys_admin sys_chroot sys_ptrace };
+	class unix_stream_socket connectto;
+	class system { start status };
+}
+
+#==================================
+# Permissions for postfix_pipe_t
+#==================================
+
+# container_runtime_exec_t
+# Merged: { execute execute_no_trans open read } and { map }
+# The 'execute' and 'open' permissions from my-processrtsh and my-podman are redundant, so they're merged.
+allow postfix_pipe_t container_runtime_exec_t:file { execute execute_no_trans map open read };
+
+# config_home_t
+# Merged: { getattr search }
+allow postfix_pipe_t config_home_t:dir { getattr search };
+
+# container_ro_file_t
+# Merged Dir: { ioctl mounton read write }
+allow postfix_pipe_t container_ro_file_t:dir { ioctl mounton read write };
+# Merged File: { getattr lock open read write }
+allow postfix_pipe_t container_ro_file_t:file { getattr lock open read write };
+
+# container_runtime_t
+# Merged: { search } (dir), { read } (file), { read } (lnk_file), { signull } (process)
+allow postfix_pipe_t container_runtime_t:dir search;
+allow postfix_pipe_t container_runtime_t:file read;
+allow postfix_pipe_t container_runtime_t:lnk_file read;
+allow postfix_pipe_t container_runtime_t:process signull;
+
+# container_runtime_tmpfs_t
+# Merged: { open read write } and { map }
+allow postfix_pipe_t container_runtime_tmpfs_t:file { map open read write };
+
+# container_var_run_t
+# Merged Dir: { setattr } and { add_name create write } -> { add_name create setattr write }
+allow postfix_pipe_t container_var_run_t:dir { add_name create setattr write };
+# Merged File: { create getattr lock open read write } and { getattr lock write } and { append }
+# Note: append is a subset of write for regular files, but sometimes specified separately. Keeping 'write' and adding 'append' for safety.
+allow postfix_pipe_t container_var_run_t:file { append create getattr lock open read write };
+
+# data_home_t
+# Merged Dir: { getattr search }, { open rmdir }, and { add_name create read remove_name watch write }, { open }
+# Final Dir: { add_name create getattr open read remove_name rmdir search watch write }
+allow postfix_pipe_t data_home_t:dir { add_name create getattr open read remove_name rmdir search watch write };
+# Merged FIFO: { unlink } and { create open read write } -> { create open read unlink write }
+allow postfix_pipe_t data_home_t:fifo_file { create open read unlink write };
+# Merged File: { getattr lock open read write }, { create setattr unlink }, { getattr open read write } and { rename }, { append }, { ioctl }
+# Final File: { append create getattr ioctl lock open read rename setattr unlink write }
+allow postfix_pipe_t data_home_t:file { append create getattr ioctl lock open read rename setattr unlink write };
+# Merged Sock_file: { write } and { create setattr unlink } -> { create setattr unlink write }
+allow postfix_pipe_t data_home_t:sock_file { create setattr unlink write };
+
+# gconf_home_t
+# Merged: { getattr search }
+allow postfix_pipe_t gconf_home_t:dir { getattr search };
+
+# init_t
+# Merged Dir: { search }
+allow postfix_pipe_t init_t:dir search;
+# Merged File: { read } and { getattr open } -> { getattr open read }
+allow postfix_pipe_t init_t:file { getattr open read };
+
+# nsfs_t
+# Merged: { open read }
+allow postfix_pipe_t nsfs_t:file { open read };
+
+# session_dbusd_tmp_t
+# Merged Sock_file: { getattr } and { write } -> { getattr write }
+allow postfix_pipe_t session_dbusd_tmp_t:sock_file { getattr write };
+
+# syslogd_var_run_t
+# Merged Dir: { read }
+allow postfix_pipe_t syslogd_var_run_t:dir read;
+
+# systemd_unit_file_t
+# Merged Dir: { getattr }
+allow postfix_pipe_t systemd_unit_file_t:dir getattr;
+
+# cgroup_t
+# Merged File: { write } and { watch } -> { watch write }
+allow postfix_pipe_t cgroup_t:file { watch write };
+
+# container_file_t
+# Merged File: { getattr open read } and { execute } -> { execute getattr open read }
+allow postfix_pipe_t container_file_t:file { execute getattr open read };
+# Merged Lnk_file: { read }
+allow postfix_pipe_t container_file_t:lnk_file read;
+
+# unconfined_dbusd_t
+# Merged Unix_stream_socket: { connectto }
+allow postfix_pipe_t unconfined_dbusd_t:unix_stream_socket connectto;
+
+# conmon_exec_t
+# Merged File: { execute execute_no_trans open read } and { map } -> { execute execute_no_trans map open read }
+allow postfix_pipe_t conmon_exec_t:file { execute execute_no_trans map open read };
+
+# container_t
+# Merged Dir: { search }
+allow postfix_pipe_t container_t:dir search;
+# Merged File: { getattr open read }
+allow postfix_pipe_t container_t:file { getattr open read };
+# Merged Lnk_file: { read }
+allow postfix_pipe_t container_t:lnk_file read;
+# Merged Process: { signull } and { transition } -> { signull transition }
+allow postfix_pipe_t container_t:process { signull transition };
+
+# unconfined_t
+# Merged System: { start status }
+allow postfix_pipe_t unconfined_t:system { start status };
+# Merged File: { read getattr }
+allow postfix_pipe_t unconfined_t:file { getattr read };
+
+# self permissions for cap_userns and process
+# Merged Cap_userns: { dac_override dac_read_search setgid setuid sys_admin sys_chroot sys_ptrace }, { dac_override dac_read_search }, and { chown kill setpcap }
+# Final Cap_userns: { chown dac_override dac_read_search kill setgid setpcap setuid sys_admin sys_chroot sys_ptrace }
+allow postfix_pipe_t self:cap_userns { chown dac_override dac_read_search kill setgid setpcap setuid sys_admin sys_chroot sys_ptrace };
+# Merged Process: { setcap setexec } and { signull } -> { setcap setexec signull }
+allow postfix_pipe_t self:process { setcap setexec signull };
+
+#==================================
+# Permissions for Other Domains
+#==================================
+
+# container_t
+# Merged Fifo_file: { getattr } and { ioctl read write } -> { getattr ioctl read write }
+# This is an AVC where a type *other* than postfix_pipe_t is the source.
+allow container_t postfix_pipe_t:fifo_file { getattr ioctl read write };

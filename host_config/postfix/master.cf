@@ -1,0 +1,4 @@
+rt-pipe unix - n n - - pipe
+  flags=B user=colonwq argv=/usr/local/bin/process-rt.sh general correspond
+rt-comment unix - n n - - pipe
+  flags=B user=colonwq argv=/usr/local/bin/process-rt.sh general comment

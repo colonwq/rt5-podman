@@ -1,0 +1,5 @@
+The output from the user level cron -l
+
+10 12 * * * /home/colonwq/bin/externalize-attachement.sh
+10 15 * * * /home/colonwq/bin/backup-attachments.sh
+10 15 * * * /home/colonwq/bin/backup-database.sh

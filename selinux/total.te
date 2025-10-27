@@ -1,0 +1,245 @@
+#This is all of the small te files concatonated into a single file. 
+module my-processrtsh 1.0;
+
+require {
+	type container_runtime_exec_t;
+	type postfix_pipe_t;
+	class file { execute execute_no_trans open read };
+}
+
+#============= postfix_pipe_t ==============
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t container_runtime_exec_t:file { execute open read };
+allow postfix_pipe_t container_runtime_exec_t:file execute_no_trans;
+
+module my-podman 1.0;
+
+require {
+	type config_home_t;
+	type data_home_t;
+	type container_runtime_tmpfs_t;
+	type gconf_home_t;
+	type postfix_pipe_t;
+	type syslogd_var_run_t;
+	type init_t;
+	type container_runtime_t;
+	type container_runtime_exec_t;
+	type session_dbusd_tmp_t;
+	type systemd_unit_file_t;
+	type container_var_run_t;
+	type nsfs_t;
+	type container_ro_file_t;
+	class file { create getattr lock map open read write };
+	class sock_file getattr;
+	class dir { add_name create getattr ioctl mounton open read rmdir search setattr write };
+	class fifo_file unlink;
+	class process signull;
+	class lnk_file read;
+	class cap_userns { dac_override dac_read_search setgid setuid sys_admin sys_chroot sys_ptrace };
+}
+
+#============= postfix_pipe_t ==============
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t config_home_t:dir { getattr search };
+allow postfix_pipe_t container_ro_file_t:dir { ioctl mounton read write };
+allow postfix_pipe_t container_ro_file_t:file { getattr lock open read write };
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t container_runtime_exec_t:file map;
+allow postfix_pipe_t container_runtime_t:dir search;
+allow postfix_pipe_t container_runtime_t:file read;
+allow postfix_pipe_t container_runtime_t:lnk_file read;
+allow postfix_pipe_t container_runtime_t:process signull;
+allow postfix_pipe_t container_runtime_tmpfs_t:file { open read write };
+
+#!!!! This avc can be allowed using the boolean 'domain_can_mmap_files'
+allow postfix_pipe_t container_runtime_tmpfs_t:file map;
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t container_var_run_t:dir setattr;
+allow postfix_pipe_t container_var_run_t:dir { add_name create write };
+allow postfix_pipe_t container_var_run_t:file { create getattr lock open read write };
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t data_home_t:dir { getattr search };
+allow postfix_pipe_t data_home_t:dir { open rmdir };
+allow postfix_pipe_t data_home_t:fifo_file unlink;
+allow postfix_pipe_t data_home_t:file { getattr lock open read write };
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t gconf_home_t:dir { getattr search };
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t init_t:dir search;
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t init_t:file read;
+allow postfix_pipe_t init_t:file { getattr open };
+allow postfix_pipe_t nsfs_t:file { open read };
+allow postfix_pipe_t self:cap_userns { dac_override dac_read_search setgid setuid sys_admin sys_chroot sys_ptrace };
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t session_dbusd_tmp_t:sock_file getattr;
+allow postfix_pipe_t syslogd_var_run_t:dir read;
+allow postfix_pipe_t systemd_unit_file_t:dir getattr;
+
+module my-exe 1.0;
+
+require {
+	type data_home_t;
+	type container_ro_file_t;
+	type container_var_run_t;
+	type unconfined_dbusd_t;
+	type postfix_pipe_t;
+	type session_dbusd_tmp_t;
+	type container_file_t;
+	type cgroup_t;
+	class cap_userns { dac_override dac_read_search };
+	class file { append create getattr lock open read setattr unlink write };
+	class dir { add_name create ioctl mounton open read remove_name watch write };
+	class sock_file write;
+	class unix_stream_socket connectto;
+}
+
+#============= postfix_pipe_t ==============
+allow postfix_pipe_t cgroup_t:file write;
+allow postfix_pipe_t container_file_t:file { getattr open read };
+
+#!!!! This avc is allowed in the current policy
+#!!!! This av rule may have been overridden by an extended permission av rule
+allow postfix_pipe_t container_ro_file_t:dir { ioctl mounton read write };
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t container_ro_file_t:file { getattr lock open read write };
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t container_var_run_t:file { getattr lock write };
+allow postfix_pipe_t container_var_run_t:file append;
+allow postfix_pipe_t data_home_t:dir { add_name create read remove_name watch write };
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t data_home_t:dir open;
+allow postfix_pipe_t data_home_t:file { create setattr unlink };
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t data_home_t:file { getattr open read write };
+allow postfix_pipe_t data_home_t:sock_file write;
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t self:cap_userns { dac_override dac_read_search };
+allow postfix_pipe_t session_dbusd_tmp_t:sock_file write;
+allow postfix_pipe_t unconfined_dbusd_t:unix_stream_socket connectto;
+
+module my-conmon 1.0;
+
+require {
+	type cgroup_t;
+	type conmon_exec_t;
+	type data_home_t;
+	type postfix_pipe_t;
+	class file { execute execute_no_trans map open read rename watch };
+	class sock_file { create setattr unlink };
+	class fifo_file { create open read write };
+	class dir remove_name;
+}
+
+#============= postfix_pipe_t ==============
+allow postfix_pipe_t cgroup_t:file watch;
+allow postfix_pipe_t conmon_exec_t:file { execute execute_no_trans open read };
+
+#!!!! This avc can be allowed using the boolean 'domain_can_mmap_files'
+allow postfix_pipe_t conmon_exec_t:file map;
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t data_home_t:dir remove_name;
+allow postfix_pipe_t data_home_t:fifo_file { create open read write };
+allow postfix_pipe_t data_home_t:file rename;
+allow postfix_pipe_t data_home_t:sock_file { create setattr unlink };
+
+module my-cat 1.0;
+
+require {
+	type postfix_pipe_t;
+	type container_t;
+	class fifo_file getattr;
+}
+
+#============= container_t ==============
+allow container_t postfix_pipe_t:fifo_file getattr;
+
+module my-bash 1.0;
+
+require {
+	type container_t;
+	type postfix_pipe_t;
+	type container_file_t;
+	class process transition;
+	class lnk_file read;
+	class fifo_file { ioctl read write };
+}
+
+#============= container_t ==============
+allow container_t postfix_pipe_t:fifo_file { ioctl read write };
+
+#============= postfix_pipe_t ==============
+allow postfix_pipe_t container_file_t:lnk_file read;
+allow postfix_pipe_t container_t:process transition;
+
+module my-3 1.0;
+
+require {
+	type container_t;
+	type postfix_pipe_t;
+	type data_home_t;
+	type container_file_t;
+	class file { append execute getattr ioctl open read };
+	class cap_userns { chown kill setpcap };
+	class process { setcap setexec signull };
+	class dir search;
+	class lnk_file read;
+}
+
+#============= postfix_pipe_t ==============
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t container_file_t:file execute;
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t container_t:dir search;
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t container_t:file { getattr open read };
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t container_t:lnk_file read;
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t container_t:process signull;
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t data_home_t:file append;
+allow postfix_pipe_t data_home_t:file ioctl;
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t self:cap_userns { chown kill setpcap };
+
+#!!!! This avc is allowed in the current policy
+allow postfix_pipe_t self:process { setcap setexec };
+module rtmailgate-podman 1.0;
+
+require {
+    type postfix_pipe_t;
+    type unconfined_t;
+    class system { start status };
+    class file { read getattr };
+    # ... potentially other required types for systemd unit file access
+}
+
+# Allow the Postfix pipe process to start and get the status of systemd units
+# run in the unconfined domain (necessary for 'podman exec').
+allow postfix_pipe_t unconfined_t:system { start status };
+allow postfix_pipe_t unconfined_t:file { read getattr };
+# Allow traversal/access to directories/files used by systemd for transient scopes
+#allow postfix_pipe_t unconfined_t:dir { search };
