@@ -2,7 +2,7 @@
 
 This repository contains the configuration files and scripts necessary to build a Request Tracker container, run it as a quadlet service and integrate with an existing data center. 
 
-The complete documenation is in the blog post XXXX
+The complete documenation is in the blog post [https://developers.redhat.com/articles/2025/11/05/building-and-running-request-tracker-quadlet-container](Building and running Request Tracker as a quadlet container)
 
 ## Repo Contents
 
