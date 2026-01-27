@@ -24,6 +24,7 @@ require {
 	type container_t;
 	type unconfined_t;
 	type user_tmp_t;
+	type systemd_logind_t;
 	class file {
 		append create execute execute_no_trans getattr ioctl lock map open read rename setattr unlink watch write
 	};
@@ -37,6 +38,7 @@ require {
 	class cap_userns { chown dac_override dac_read_search kill setgid setpcap setuid sys_admin sys_chroot sys_ptrace };
 	class unix_stream_socket connectto;
 	class system { start status };
+	class dbus send_msg;
 }
 
 #==================================
@@ -96,7 +98,11 @@ allow postfix_pipe_t unconfined_t:system { start status };
 allow postfix_pipe_t unconfined_t:file { getattr read };
 
 # podman libpod dir on tmpfs (user_tmp_t)
-allow postfix_pipe_t user_tmp_t:dir setattr;
+allow postfix_pipe_t user_tmp_t:dir { add_name create setattr write };
+allow postfix_pipe_t user_tmp_t:file { getattr open read write };
+
+# dbus: postfix pipe communicating with systemd-logind (e.g. via dbus-broker)
+allow postfix_pipe_t systemd_logind_t:dbus send_msg;
 
 allow postfix_pipe_t self:cap_userns { chown dac_override dac_read_search kill setgid setpcap setuid sys_admin sys_chroot sys_ptrace };
 allow postfix_pipe_t self:process { setcap setexec signull };
