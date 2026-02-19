@@ -99,7 +99,7 @@ allow postfix_pipe_t unconfined_t:file { getattr read };
 
 # podman libpod dir on tmpfs (user_tmp_t)
 allow postfix_pipe_t user_tmp_t:dir { add_name create setattr write };
-allow postfix_pipe_t user_tmp_t:file { getattr open read write };
+allow postfix_pipe_t user_tmp_t:file { create getattr open read write };
 
 # dbus: postfix pipe communicating with systemd-logind (e.g. via dbus-broker)
 allow postfix_pipe_t systemd_logind_t:dbus send_msg;
