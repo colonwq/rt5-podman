@@ -23,6 +23,7 @@ require {
 	type conmon_exec_t;
 	type container_t;
 	type unconfined_t;
+	type user_tmp_t;
 	class file {
 		append create execute execute_no_trans getattr ioctl lock map open read rename setattr unlink watch write
 	};
@@ -146,6 +147,9 @@ allow postfix_pipe_t container_t:process { signull transition };
 allow postfix_pipe_t unconfined_t:system { start status };
 # Merged File: { read getattr }
 allow postfix_pipe_t unconfined_t:file { getattr read };
+
+# user_tmp_t (e.g. podman libpod tmpfs, events.log)
+allow postfix_pipe_t user_tmp_t:file { create getattr open read write };
 
 # self permissions for cap_userns and process
 # Merged Cap_userns: { dac_override dac_read_search setgid setuid sys_admin sys_chroot sys_ptrace }, { dac_override dac_read_search }, and { chown kill setpcap }
