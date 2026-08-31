@@ -1,0 +1,8 @@
+# Custom bridge network with aardvark-dns enabled (unlike the built-in "podman" network).
+# Containers resolve each other by ContainerName (mariadb, rt5, exim).
+[Network]
+NetworkName=rt5-net
+Driver=bridge
+
+[Install]
+WantedBy=default.target
