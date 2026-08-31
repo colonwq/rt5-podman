@@ -1,0 +1,4 @@
+[Build]
+Image=docker.io/colonwq/rt-mailgate:510-4
+File=Containerfile
+SetWorkingDirectory=/store/rt5-podman/podman-exim

@@ -1,0 +1,54 @@
+FROM quay.io/fedora/httpd-24:latest AS build
+
+USER 0
+RUN dnf install -y mariadb links expat-devel gcc gd gd-devel graphviz \
+        perl-App-cpanminus perl-DBD-mysql perl-Starlet perl-GnuPG-Interface \
+        perl-LWP-Protocol-https perl-FCGI perl-core && \
+    groupadd -r rt && \
+    mkdir /rt && cd /rt && \
+    curl -fsSL -o rt-5.0.10.tar.gz \
+        https://download.bestpractical.com/pub/rt/release/rt-5.0.10.tar.gz && \
+    tar -zxf rt-5.0.10.tar.gz && cd rt-5.0.10 && \
+    export PERL5LIB=/opt/rt5/local/lib/perl5 && \
+    ./configure --enable-externalauth --with-attachment-store=disk \
+        --with-web-user=apache --with-web-group=apache \
+        --disable-gpg && \
+    make dirs && \
+    cpanm --notest --local-lib-contained=/opt/rt5/local LWP::Protocol::https Mozilla::CA && \
+    make fixdeps \
+        RT_FIX_DEPS_CMD="cpanm --notest --local-lib-contained=/opt/rt5/local" && \
+    make install && \
+    ARCH=$(perl -MConfig -e 'print $Config{archname}') && \
+    VER=$(perl -MConfig -e 'print $Config{version}') && \
+    find /opt/rt5/sbin /opt/rt5/bin -type f -executable -exec grep -l 'local/lib' {} \; \
+        | xargs sed -i \
+        "s/(\"lib\", \"local\/lib\")/(\"lib\", \"local\/lib\", \"local\/lib\/perl5\", \"local\/lib\/perl5\/$VER\", \"local\/lib\/perl5\/$ARCH\", \"local\/lib\/perl5\/$VER\/$ARCH\")/g" && \
+    mv /opt/rt5/etc/RT_SiteConfig.pm /opt/rt5/etc/RT_SiteConfig.pm.ORIG && \
+    find /opt/rt5/local -type d -exec chmod a+rX {} \; && \
+    find /opt/rt5/local -type f -exec chmod a+r {} \; && \
+    rm -rf /root/.local /root/.cpanm /rt
+
+FROM quay.io/fedora/httpd-24:latest AS run
+
+USER 0
+RUN dnf install -y mod_fcgid mariadb perl-DBD-mysql perl-Starlet \
+        perl-GnuPG-Interface msmtp perl-core perl-FCGI \
+        perl-GD perl-GraphViz2 graphviz gd links && \
+    dnf clean all && \
+    mkdir -p /attachments /run/mod_fcgid && \
+    chown -R default:root /attachments /run/mod_fcgid
+
+COPY --from=build /opt/rt5 /opt/rt5
+RUN ARCH=$(perl -MConfig -e 'print $Config{archname}') && \
+    VER=$(perl -MConfig -e 'print $Config{version}') && \
+    printf '%s\n' \
+        "FcgidInitialEnv PERL5LIB /opt/rt5/local/lib/perl5/$VER/$ARCH:/opt/rt5/local/lib/perl5/$ARCH:/opt/rt5/local/lib/perl5/$VER:/opt/rt5/local/lib/perl5" \
+        > /etc/httpd/conf.d/rt-local-lib.conf && \
+    chown -R default:root /opt/rt5/var /attachments /run/mod_fcgid && \
+    chmod -R a+rX /opt/rt5/etc /opt/rt5/sbin /opt/rt5/lib && \
+    find /opt/rt5/local -type d -exec chmod a+rX {} \; && \
+    find /opt/rt5/local -type f -exec chmod a+r {} \;
+
+EXPOSE 8080
+USER 1001
+CMD ["/usr/bin/run-httpd"]

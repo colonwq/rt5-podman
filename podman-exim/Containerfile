@@ -1,0 +1,59 @@
+FROM fedora:44 AS build
+
+USER 0
+RUN dnf install -y mariadb links expat-devel gcc gd gd-devel graphviz \
+        perl-App-cpanminus perl-DBD-mysql perl-Starlet perl-GnuPG-Interface \
+        perl-LWP-Protocol-https perl-FCGI perl-core httpd && \
+    groupadd -r rt && \
+    mkdir /rt && cd /rt && \
+    curl -fsSL -o rt-5.0.10.tar.gz \
+        https://download.bestpractical.com/pub/rt/release/rt-5.0.10.tar.gz && \
+    tar -zxf rt-5.0.10.tar.gz && cd rt-5.0.10 && \
+    export PERL5LIB=/opt/rt5/local/lib/perl5 && \
+    ./configure --enable-externalauth --with-attachment-store=disk \
+        --with-web-user=apache --with-web-group=apache \
+        --disable-gpg && \
+    make dirs && \
+    cpanm --notest --local-lib-contained=/opt/rt5/local LWP::Protocol::https Mozilla::CA && \
+    make fixdeps \
+        RT_FIX_DEPS_CMD="cpanm --notest --local-lib-contained=/opt/rt5/local" && \
+    make install && \
+    ARCH=$(perl -MConfig -e 'print $Config{archname}') && \
+    VER=$(perl -MConfig -e 'print $Config{version}') && \
+    find /opt/rt5/sbin /opt/rt5/bin -type f -executable -exec grep -l 'local/lib' {} \; \
+        | xargs sed -i \
+        "s/(\"lib\", \"local\/lib\")/(\"lib\", \"local\/lib\", \"local\/lib\/perl5\", \"local\/lib\/perl5\/$VER\", \"local\/lib\/perl5\/$ARCH\", \"local\/lib\/perl5\/$VER\/$ARCH\")/g" && \
+    mv /opt/rt5/etc/RT_SiteConfig.pm /opt/rt5/etc/RT_SiteConfig.pm.ORIG && \
+    find /opt/rt5/local -type d -exec chmod a+rX {} \; && \
+    find /opt/rt5/local -type f -exec chmod a+r {} \; && \
+    rm -rf /root/.local /root/.cpanm /rt
+
+FROM fedora:44 AS run
+
+USER 0
+RUN dnf install -y exim perl-libwww-perl perl-LWP-Protocol-https perl-Mozilla-CA && \
+    dnf clean all
+
+COPY --from=build /opt/rt5 /opt/rt5
+
+# rt-mailgate needs RT's contained Perl libs (LWP::UserAgent, etc.).
+RUN ARCH=$(perl -MConfig -e 'print $Config{archname}') && \
+    VER=$(perl -MConfig -e 'print $Config{version}') && \
+    printf '%s\n' \
+        '#!/bin/sh' \
+        "export PERL5LIB=/opt/rt5/local/lib/perl5/$VER/$ARCH:/opt/rt5/local/lib/perl5/$ARCH:/opt/rt5/local/lib/perl5/$VER:/opt/rt5/local/lib/perl5" \
+        'exec /opt/rt5/bin/rt-mailgate "$@"' \
+        > /opt/rt5/bin/rt-mailgate-wrap.sh && \
+    chmod 755 /opt/rt5/bin/rt-mailgate-wrap.sh && \
+    chmod -R a+rX /opt/rt5/etc /opt/rt5/sbin /opt/rt5/lib && \
+    find /opt/rt5/local -type d -exec chmod a+rX {} \; && \
+    find /opt/rt5/local -type f -exec chmod a+r {} \;
+
+# Exim logs -> stderr (podman logs captures container stderr).
+RUN mkdir -p /var/log/exim && \
+    ln -sf /dev/stderr /var/log/exim/main.log && \
+    ln -sf /dev/stderr /var/log/exim/reject.log && \
+    ln -sf /dev/stderr /var/log/exim/panic.log
+
+EXPOSE 25
+CMD ["/usr/sbin/exim", "-bdf", "-q30m"]

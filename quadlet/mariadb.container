@@ -3,12 +3,18 @@
 Image=docker.io/mariadb:lts-ubi
 # Name for the container instance
 ContainerName=mariadb
-# Replace 'podman' with your desired network name
-Network=podman 
+Network=rt5.network
 # Run the container in detached mode and remove it when it stops
 AutoUpdate=registry
 # Add --rm functionality by setting the container to be removed on exit
 PodmanArgs=--rm
+
+HealthCmd=mariadb-admin ping -h localhost --silent
+HealthInterval=60s
+HealthTimeout=5s
+HealthRetries=3
+HealthStartPeriod=60s
+HealthOnFailure=kill
 
 # Volume mount from host path to container path
 Volume=/store/db:/var/lib/mysql:Z
@@ -16,7 +22,8 @@ Volume=/store/db:/var/lib/mysql:Z
 # Port mapping from host port 3306 to container port 3306
 PublishPort=3306:3306
 
-# Note: The 'podman run -d' is implicit in a systemd service file.
+[Service]
+Restart=on-failure
 
 [Install]
 # This section defines how the service should be enabled and started.

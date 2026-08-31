@@ -5,7 +5,7 @@ Set( $rtname, 'Example Corp.' );
 
 #Database connection settings
 Set( $DatabaseRTHost, "%" ) ;
-Set( $DatabaseHost, 'db.example.com' );
+Set( $DatabaseHost, 'mariadb' );
 Set( $DatabaseName, 'rt5' );
 Set( $DatabasePassword, 'rt_pass' );
 Set( $DatabasePort, '' );
@@ -21,13 +21,18 @@ Set( $LogToSTDERR, "info");
 Set( $MailCommand, "sendmail");
 Set( $SendmailPath, "/usr/bin/msmtp") ;
 Set( $SendmailArguments, "-t" ) ;
-Set( $CorrespondAddress, 'rt@example.com' );
-Set( $CommentAddress, 'rt-comment@example.com' );
+Set( $CorrespondAddress, 'rt@rt.example.com' );
+Set( $CommentAddress, 'rt-comment@rt.example.com' );
 
-#Web settings
-Set( $WebSecureCookies, 0);
+# Web settings (public URL: https://rt.example.com behind host Apache reverse proxy)
+# See host_config/apache/README.md. Direct http://127.0.0.1:8080 access still works
+# when CanonicalizeRedirectURLs is enabled.
 Set( $WebDomain, 'rt.example.com' );
-Set( $WebPort, '8080' );
+Set( $WebPort, '443' );
+Set( $WebPath, '' );
+Set( $WebSecureCookies, 1 );
+Set( $CanonicalizeRedirectURLs, 1 );
+Set( $CanonicalizeURLsInFeeds, 1 );
 
 #Application behavior settings
 Set( $NotifyActor, 1);
@@ -36,4 +41,3 @@ Set( %ExternalStorage,
         Path => '/attachments',
 );
 1;
-

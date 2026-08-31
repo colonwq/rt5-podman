@@ -1,0 +1,2 @@
+rt: |/opt/rt5/bin/rt-mailgate-wrap.sh --no-verify-ssl --queue General --action correspond --url http://rt5:8080/
+rt-comment: |/opt/rt5/bin/rt-mailgate-wrap.sh --no-verify-ssl --queue General --action comment --url http://rt5:8080/
