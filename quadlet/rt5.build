@@ -1,0 +1,4 @@
+[Build]
+Image=docker.io/colonwq/rt5:510-5
+File=Containerfile
+SetWorkingDirectory=/store/rt5-podman/podman-rt
