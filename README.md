@@ -63,9 +63,11 @@ grep service-user /etc/subuid /etc/subgid
 ### 3. Storage and site configuration
 
 ```bash
-sudo mkdir -p /store/config /store/db /store/attachments /store/rt5-podman
+sudo mkdir -p /store/config /store/db/tmp /store/attachments /store/rt5-podman
 sudo chown -R service-user:service-user /store
 ```
+
+`/store/db/tmp` is MariaDB's `tmpdir` inside the container (`/var/lib/mysql/tmp`).
 
 Clone or copy this repository to `/store/rt5-podman`:
 
@@ -93,9 +95,10 @@ sudo chown service-user:service-user /store/config/*
 
 Review `/store/config/RT_SiteConfig.pm` and `/store/config/exim.conf` if you did not use `customize.sh`.
 
-Initialize the MariaDB data directory (first run only):
+Initialize the MariaDB data directory (first run only). Ensure the tmpdir exists:
 
 ```bash
+sudo mkdir -p /store/db/tmp
 sudo chown -R service-user:service-user /store/db
 ```
 

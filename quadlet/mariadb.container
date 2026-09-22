@@ -19,6 +19,10 @@ HealthOnFailure=kill
 # Volume mount from host path to container path
 Volume=/store/db:/var/lib/mysql:Z
 
+# Keep temporary tables/files on the data volume (host: /store/db/tmp).
+# Create the directory on the host before first start: mkdir -p /store/db/tmp
+Exec=mariadbd --tmpdir=/var/lib/mysql/tmp
+
 # Host loopback :3306 only — not 0.0.0.0. Containers on rt5-net use mariadb:3306.
 PublishPort=127.0.0.1:3306:3306
 
