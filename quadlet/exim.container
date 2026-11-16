@@ -1,0 +1,26 @@
+[Container]
+Image=docker.io/colonwq/rt-mailgate:510-4
+ContainerName=exim
+Network=rt5.network
+AutoUpdate=registry
+PodmanArgs=--rm
+Exec=/usr/sbin/exim -bdf -q30m
+
+HealthCmd=/usr/sbin/exim -bP primary_hostname
+HealthInterval=60s
+HealthTimeout=5s
+HealthRetries=3
+HealthStartPeriod=30s
+HealthOnFailure=kill
+
+Volume=/store/config/exim.conf:/etc/exim/exim.conf:Z
+Volume=/store/config/aliases:/etc/aliases:Z
+Volume=/store/config/RT_SiteConfig.pm:/opt/rt5/etc/RT_SiteConfig.pm:Z
+
+PublishPort=127.0.0.1:2525:25
+
+[Service]
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

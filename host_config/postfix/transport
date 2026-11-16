@@ -1,2 +1,4 @@
-rt@rt.example.com rt-pipe
-rt-comment@rt.example.com rt-comment
+# Forward RT mail to the exim container on loopback port 2525.
+# Host port 2525 maps to exim :25 inside the container (rootless Podman cannot bind host :25).
+rt@rt.example.com smtp:[127.0.0.1]:2525
+rt-comment@rt.example.com smtp:[127.0.0.1]:2525

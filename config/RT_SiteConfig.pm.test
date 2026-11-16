@@ -1,0 +1,35 @@
+# Test/site config for local image smoke tests (copy to /opt/rt5/etc/RT_SiteConfig.pm).
+# Expects mariadb on the podman network with the credentials below.
+
+use utf8;
+
+Set( $rtname, 'RT Test Instance' );
+
+Set( $DatabaseRTHost, '%' );
+Set( $DatabaseHost, 'mariadb' );
+Set( $DatabaseName, 'rt5' );
+Set( $DatabasePassword, 'rt_pass' );
+Set( $DatabasePort, '' );
+Set( $DatabaseType, 'mysql' );
+Set( $DatabaseUser, 'rt_user' );
+
+Set( $LogToSyslog, '' );
+Set( $LogToSTDERR, 'debug' );
+
+Set( $MailCommand, 'sendmail' );
+Set( $SendmailPath, '/usr/bin/msmtp' );
+Set( $SendmailArguments, '-t' );
+Set( $CorrespondAddress, 'rt@rt.example.com' );
+Set( $CommentAddress, 'rt-comment@rt.example.com' );
+
+Set( $WebSecureCookies, 0 );
+Set( $WebDomain, 'localhost' );
+Set( $WebPort, '8080' );
+Set( $WebBaseURL, 'http://localhost:8080' );
+
+Set( $NotifyActor, 1 );
+Set( %ExternalStorage,
+    Type => 'Disk',
+    Path => '/attachments',
+);
+1;

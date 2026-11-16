@@ -1,0 +1,6 @@
+# Declare RT addresses as valid recipients (required before transport_maps applies).
+# Each line: address address  (map to self, or any placeholder local part)
+#
+# Must match addresses in transport and exim /etc/aliases local parts.
+rt@rt.example.com rt@rt.example.com
+rt-comment@rt.example.com rt-comment@rt.example.com
